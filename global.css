@@ -1,0 +1,13 @@
+/* תמחק את אלו: 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+*/
+
+@layer base {
+  :root {
+    --color-run: #22c55e;
+    --color-bike: #f97316;
+    --color-swim: #3b82f6;
+  }
+}
