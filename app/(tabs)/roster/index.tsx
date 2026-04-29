@@ -5,7 +5,7 @@ import {
   ActivityIndicator, RefreshControl
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
+import { api as supabase } from '../../../lib/api';
 import { Users, ChevronLeft } from 'lucide-react-native';
 
 interface Subgroup {

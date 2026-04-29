@@ -5,7 +5,7 @@ import {
   TouchableOpacity, RefreshControl, Alert
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
+import { api as supabase } from '../../../lib/api';
 import { User, CheckCircle2, XCircle, Timer } from 'lucide-react-native';
 
 interface Athlete {

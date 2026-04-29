@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { supabase } from '../../lib/supabase';
+import { api as supabase } from '../../lib/api';
 import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {

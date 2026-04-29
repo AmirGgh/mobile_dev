@@ -6,7 +6,7 @@ import {
   TouchableWithoutFeedback, Keyboard
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { supabase } from '../../lib/supabase';
+import { api as supabase } from '../../lib/api';
 import { Mail, Lock, User as UserIcon, Link } from 'lucide-react-native';
 
 export default function SignUp() {

@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
+import { api as supabase } from '../../../lib/api';
 import { generateWorkoutPlan } from '../../../lib/ai-service';
 import { Sparkles, CalendarDays, FileText, Save, Gift, RefreshCw, ChevronLeft } from 'lucide-react-native';
 

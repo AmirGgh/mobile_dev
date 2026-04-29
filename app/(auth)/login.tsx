@@ -4,7 +4,7 @@ import {
   View, Text, TextInput, TouchableOpacity, Alert, 
   KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard
 } from 'react-native';
-import { supabase } from '../../lib/supabase';
+import { api as supabase } from '../../lib/api';
 import { useRouter } from 'expo-router';
 import { Mail, Lock, ChevronLeft, Activity } from 'lucide-react-native';
 

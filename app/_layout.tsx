@@ -1,12 +1,12 @@
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { Session } from '@supabase/supabase-js';
+import { api as supabase } from '../lib/api';
+// import { Session } from '@supabase/supabase-js';
 import '../global.css';
 import { View, ActivityIndicator } from 'react-native';
 
 export default function RootLayout() {
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any | null>(null);
   const [initialized, setInitialized] = useState(false);
   const segments = useSegments();
   const router = useRouter();

@@ -4,7 +4,7 @@ import {
   View, Text, TextInput, TouchableOpacity, FlatList,
   KeyboardAvoidingView, Platform, ActivityIndicator, Alert
 } from 'react-native';
-import { supabase } from '../../lib/supabase';
+import { api as supabase } from '../../lib/api';
 import { askCoachChat } from '../../lib/ai-service';
 import { Send, Bot, User } from 'lucide-react-native';
 

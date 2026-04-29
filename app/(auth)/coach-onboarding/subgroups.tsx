@@ -6,7 +6,7 @@ import {
   Alert, Modal
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '../../../lib/supabase';
+import { api as supabase } from '../../../lib/api';
 import { Plus, ChevronLeft, Check, ChevronDown } from 'lucide-react-native';
 
 // ─── Constants ───────────────────────────────────────────────────────────────

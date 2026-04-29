@@ -5,7 +5,7 @@ import {
   ActivityIndicator, Alert, RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { supabase } from '../../lib/supabase';
+import { api as supabase } from '../../lib/api';
 import {
   Home, Users, Dumbbell, Sparkles, ChevronDown, ChevronUp,
   Waves, Bike, PersonStanding, CalendarDays,
