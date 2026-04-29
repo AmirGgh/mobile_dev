@@ -31,10 +31,10 @@ jobs:
       - name: ⌨️ Check Types
         run: npm run type-check
 
-  build-preview:
-    name: 📱 Build Preview APK
+  build-android:
+    name: 📱 Build Android APK
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Checkout repository
@@ -46,46 +46,25 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v8
+      - name: 🏗 Setup Java
+        uses: actions/setup-java@v4
         with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          java-version: '17'
+          distribution: 'temurin'
 
       - name: 📦 Install dependencies
         run: npm install
 
-      - name: 🚀 Build Preview APK
-        run: eas build --platform android --profile preview --non-interactive
+      - name: 🏗 Prebuild Native Files
+        run: npx expo prebuild --platform android --non-interactive
 
-  deploy-production:
-    name: 🚀 Deploy to Play Store
-    needs: test
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🏗 Checkout repository
-        uses: actions/checkout@v4
+      - name: 🚀 Build Release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease
 
-      - name: 🏗 Setup Node
-        uses: actions/setup-node@v4
+      - name: 📦 Upload APK Artifact
+        uses: actions/upload-artifact@v4
         with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: 📦 Install dependencies
-        run: npm install
-
-      - name: 🔑 Prepare Google Services Key
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > google-services.json
-
-      - name: 🚀 Build & Submit to Play Store
-        run: eas build --platform android --profile production --non-interactive --auto-submit
+          name: tripro-release-apk
+          path: mobile_dev/android/app/build/outputs/apk/release/app-release-unsigned.apk
