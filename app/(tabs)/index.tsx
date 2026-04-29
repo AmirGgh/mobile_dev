@@ -7,8 +7,7 @@ import {
 import { useRouter } from 'expo-router';
 import { api as supabase } from '../../lib/api';
 import {
-  Home, Users, Dumbbell, Sparkles, ChevronDown, ChevronUp,
-  Waves, Bike, PersonStanding, CalendarDays,
+  Home, Users, Sparkles, ChevronDown, ChevronUp,
 } from 'lucide-react-native';
 
 import { WorkoutCard, Workout } from '../../components/WorkoutCard';
@@ -120,7 +119,7 @@ function SubgroupCard({
 
 // ─── Main Dashboard Screen ────────────────────────────────────────────────────
 export default function DashboardScreen() {
-  const router = useRouter();
+  // const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState('');

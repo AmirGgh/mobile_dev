@@ -163,7 +163,7 @@ export default function CoachOnboarding() {
         
         <View className="h-px w-full bg-neutral-800 mb-6" />
         
-        <Text className="text-neutral-400 text-center mb-2">סה"כ לתשלום חודשי:</Text>
+        <Text className="text-neutral-400 text-center mb-2">{"סה\"כ לתשלום חודשי:"}</Text>
         <Text className="text-[#22c55e] text-4xl font-black text-center">₪{subgroups.length * 150}</Text>
       </View>
 

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+// import { Platform } from 'react-native';
 
 const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/+$/, "");
 const AUTH_TOKEN_KEY = "tri_pro_auth_token";
@@ -81,7 +81,7 @@ class QueryBuilder {
   private limitValue = "";
   private singleMode = false;
   private mutationType: "insert" | "update" | "delete" | null = null;
-  private mutationPayload: Record<string, unknown> | Array<Record<string, unknown>> | null = null;
+  private mutationPayload: Record<string, unknown> | Record<string, unknown>[] | null = null;
 
   constructor(table: string) {
     this.table = table;
@@ -102,7 +102,7 @@ class QueryBuilder {
     return this;
   }
 
-  in(column: string, values: Array<string | number | boolean>): this {
+  in(column: string, values: (string | number | boolean)[]): this {
     this.filters.set(`in.${column}`, JSON.stringify(values));
     return this;
   }
@@ -203,7 +203,7 @@ class QueryBuilder {
     }
   }
 
-  insert(payload: Record<string, unknown> | Array<Record<string, unknown>>): this {
+  insert(payload: Record<string, unknown> | Record<string, unknown>[]): this {
     this.mutationType = "insert";
     this.mutationPayload = payload;
     return this;

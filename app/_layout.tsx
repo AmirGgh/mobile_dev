@@ -51,7 +51,7 @@ export default function RootLayout() {
       router.replace('/(tabs)');
     }
     // If inOnboarding → do nothing; the onboarding screen controls its own navigation
-  }, [session, initialized, segments]);
+  }, [session, initialized, segments, router]);
 
   if (!initialized) {
     return (
