@@ -1,50 +1,63 @@
-# Welcome to your Expo app 👋
+# TriPro Mobile 🏊‍♂️ 🚴‍♂️ 🏃‍♂️
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+The official mobile application for the TriPro coaching platform. Built with Expo, React Native, and NativeWind.
 
-## Get started
+## 🏗 Architecture: Unified Backend
 
-1. Install dependencies
+This app is configured to use the **Unified TriPro Backend**. Instead of talking directly to Supabase or AI services, all requests are proxied through the central API. This ensures:
+- **Centralized Security**: API keys (Gemini, Supabase) are managed on the server.
+- **Consistent Data**: Both web and mobile share the exact same database and logic.
+- **Improved Performance**: Heavy lifting is handled by the Node.js backend.
 
-   ```bash
-   npm install
-   ```
+## 🚀 Getting Started
 
-2. Start the app
+### 1. Prerequisites
+- [Node.js](https://nodejs.org/)
+- [Expo Go](https://expo.dev/go) app on your phone (for development)
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+### 2. Installation
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 3. Configuration
+Create a `.env` file (or update the existing one):
+```env
+EXPO_PUBLIC_API_URL=http://your-vm-ip:4000
+```
+> [!IMPORTANT]
+> If testing on a physical device, use your computer's local IP or your VM's public IP instead of `localhost`.
 
-## Learn more
+### 4. Development
+```bash
+npx expo start
+```
+Scan the QR code with your phone to open the app.
 
-To learn more about developing your project with Expo, look at the following resources:
+## 📱 Building for Android (APK)
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+We use **EAS Build** for continuous integration and delivery.
 
-## Join the community
+### Local Build
+To trigger a build from your machine:
+```bash
+npx eas-build --platform android --profile preview
+```
 
-Join our community of developers creating universal apps.
+### CI/CD Pipeline
+The app uses a 3-stage automated pipeline:
+1. **🧪 Test**: Runs on every push and PR (Linting + Type-check).
+2. **📱 Preview**: Generates an installable APK on every push to `main`.
+3. **🚀 Deploy**: Builds a production AAB and submits it to the Play Store when a version tag (e.g., `v1.0.1`) is pushed.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### CI/CD Setup
+1. **EXPO_TOKEN**: Generate at [expo.dev/settings/access-tokens](https://expo.dev/settings/access-tokens).
+2. **GOOGLE_SERVICES_JSON**: (For Play Store) Upload your Google Service Account key as a GitHub Secret.
+3. **Project ID**: Run `npx eas build:configure` once locally.
+
+## 🛠 Project Structure
+- `app/`: Expo Router file-based routing.
+- `lib/api.ts`: Unified API client (Supabase-compatible).
+- `lib/ai-service.ts`: Wrapper for backend AI functions.
+- `components/`: Shared UI components.
+- `assets/`: Icons, splash screens, and images.
