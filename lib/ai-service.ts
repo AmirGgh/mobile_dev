@@ -1,4 +1,4 @@
-import { api } from './api';
+// import { api } from './api';
 
 // ─── AI Service — Backend-Unified Gemini Integration ──────────────────────────
 // Two public functions:
@@ -57,7 +57,7 @@ export const askCoachChat = async (prompt: string): Promise<string> => {
             if (content) {
               aggregatedText += content;
             }
-          } catch (e) {
+          } catch {
             // Partial JSON or empty data
           }
         }

@@ -15,7 +15,7 @@ export default function ProfileScreen() {
   async function fetchProfile() {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
@@ -42,7 +42,7 @@ export default function ProfileScreen() {
         <View className="flex-row mt-4 p-4 bg-blue-50 rounded-xl">
           <View className="flex-1 items-center border-r border-blue-100">
             <Text className="text-blue-600 font-bold text-xl">{profile?.total_xp || 0}</Text>
-            <Text className="text-blue-400 text-xs">XP סה"כ</Text>
+            <Text className="text-blue-400 text-xs">{"XP סה\"כ"}</Text>
           </View>
           <View className="flex-1 items-center">
             <Text className="text-blue-600 font-bold text-xl">{profile?.level || 1}</Text>
