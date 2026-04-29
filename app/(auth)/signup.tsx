@@ -76,7 +76,7 @@ export default function SignUp() {
           // Fallback ensures trigger never receives undefined/empty and skips group creation.
           group_name: isCoach
             ? (groupName.trim() || `מועדון ${fullName.trim()}` || 'מועדון חדש')
-            : undefined,
+            : '',
         },
       },
     });
@@ -101,7 +101,7 @@ export default function SignUp() {
 
     // ── Step 3: Handle email-confirmation-required state ──────────────────────
     // When Supabase "Confirm email" is ON → user exists but session is null.
-    if (!data.session && data.user) {
+    if (data && !data.session && data.user) {
       setLoading(false);
       Alert.alert(
         'בדוק את האימייל שלך',
@@ -111,7 +111,7 @@ export default function SignUp() {
       return;
     }
 
-    const user = data.user;
+    const user = data?.user;
     if (!user) {
       setLoading(false);
       Alert.alert('שגיאה', 'לא הצלחנו לקבל פרטי המשתמש. נסה שוב.');

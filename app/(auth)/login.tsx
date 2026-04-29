@@ -21,7 +21,7 @@ export default function Login() {
       email: email,
     });
     if (error) {
-      Alert.alert('שגיאה', error.message);
+      Alert.alert('שגיאה', (error as any).message);
     } else {
       Alert.alert('נשלח', 'אימייל אימות נשלח בהצלחה. אנא בדוק את תיבת הדואר שלך.');
     }

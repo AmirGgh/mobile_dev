@@ -236,7 +236,13 @@ export const api = {
         });
         await setSession(response.token, response.user);
         await notifyAuth("SIGNED_IN");
-        return { data: { user: response.user }, error: null };
+        return { 
+          data: { 
+            user: response.user, 
+            session: { access_token: response.token, user: response.user } 
+          }, 
+          error: null 
+        };
       } catch (error: any) {
         return { data: null, error };
       }
@@ -253,6 +259,11 @@ export const api = {
       } catch (error: any) {
         return { data: null, error };
       }
+    },
+    async resend(input: { type: string; email: string }) {
+      // Mock resend for custom backend (to be implemented on server)
+      console.log(`[API] Mock resend for ${input.email}`);
+      return { data: {}, error: null };
     },
     async signOut() {
       await clearSession();

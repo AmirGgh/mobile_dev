@@ -34,7 +34,7 @@ export default function AthletesListScreen() {
 
       if (membersError) throw membersError;
 
-      const athleteIds = membersData?.map(m => m.athlete_id) || [];
+      const athleteIds = membersData?.map((m: any) => m.athlete_id) || [];
 
       if (athleteIds.length === 0) {
         setAthletes([]);
@@ -49,7 +49,7 @@ export default function AthletesListScreen() {
 
       if (profilesError) throw profilesError;
 
-      const formattedAthletes = (profilesData || []).map(p => ({
+      const formattedAthletes = (profilesData || []).map((p: any) => ({
         id: p.id,
         name: p.full_name || 'מתאמן ללא שם',
       }));
