@@ -105,11 +105,11 @@ jobs:
       - name: 🚀 Build iOS App (Simulator)
         run: |
           xcodebuild -workspace ios/*.xcworkspace \
-            -scheme mobile_dev \
+            -scheme mobiledev \
             -configuration Release \
             -sdk iphonesimulator \
             -derivedDataPath build
-          cp -r build/Build/Products/Release-iphonesimulator/mobile_dev.app ./TriPro-iOS-Simulator.app
+          cp -r build/Build/Products/Release-iphonesimulator/mobiledev.app ./TriPro-iOS-Simulator.app
 
       - name: 📦 Upload iOS Artifact
         uses: actions/upload-artifact@v4
