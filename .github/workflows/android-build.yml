@@ -12,9 +12,6 @@ jobs:
   test:
     name: 🧪 Test & Lint
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile_dev
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
@@ -38,9 +35,6 @@ jobs:
     needs: test
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile_dev
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
@@ -68,10 +62,9 @@ jobs:
           cd android
           ./gradlew assembleRelease --no-daemon --stacktrace
 
-
       - name: 📦 Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: tripro-release-apk
-          path: mobile_dev/android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/release/*.apk
 
