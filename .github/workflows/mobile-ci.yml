@@ -61,7 +61,7 @@ jobs:
         run: |
           cd android
           ./gradlew assembleRelease --no-daemon --stacktrace
-          cp app/build/outputs/apk/release/app-release-unsigned.apk ../TriPro-Android-Release.apk
+          cp app/build/outputs/apk/release/*.apk ../TriPro-Android-Release.apk
 
       - name: 📦 Upload APK Artifact
         uses: actions/upload-artifact@v4
