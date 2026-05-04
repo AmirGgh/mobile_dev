@@ -2,11 +2,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, ActivityIndicator,
-  TouchableOpacity, RefreshControl, Alert
+  TouchableOpacity, RefreshControl, Alert, Modal, TextInput
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { api as supabase } from '../../../lib/api';
-import { User, CheckCircle2, XCircle, Timer } from 'lucide-react-native';
+import { User, CheckCircle2, XCircle, Timer, X } from 'lucide-react-native';
 
 interface Athlete {
   id: string;
@@ -19,14 +19,51 @@ export default function AthletesListScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   
-  // Local state for attendance (true = present, false = absent, undefined = not marked)
-  const [attendance, setAttendance] = useState<Record<string, boolean>>({});
+  const [todayWorkout, setTodayWorkout] = useState<any>(null);
+  const [attendance, setAttendance] = useState<Record<string, string>>({});
+
+  // Result Modal State
+  const [resultModalVisible, setResultModalVisible] = useState(false);
+  const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
+  const [resultData, setResultData] = useState({
+    duration: '',
+    distance: '',
+    rpe: '',
+    notes: ''
+  });
+  const [savingResult, setSavingResult] = useState(false);
 
   const fetchAthletes = useCallback(async () => {
     try {
       if (!subgroup_id) return;
 
-      // Fetch group_members for this subgroup
+      // 1. Fetch today's workout for this subgroup
+      const today = new Date().toISOString().split('T')[0];
+      const { data: workoutsData } = await supabase
+        .from('workouts')
+        .select('id, title')
+        .eq('subgroup_id', subgroup_id)
+        .eq('date', today)
+        .limit(1);
+      
+      const currentWorkout = workoutsData?.[0];
+      setTodayWorkout(currentWorkout);
+
+      // 2. Fetch attendance for this workout if it exists
+      if (currentWorkout) {
+        const { data: attData } = await supabase
+          .from('attendance')
+          .select('athlete_id, status')
+          .eq('workout_id', currentWorkout.id);
+        
+        const attMap: Record<string, string> = {};
+        (attData || []).forEach((a: any) => {
+          attMap[a.athlete_id] = a.status;
+        });
+        setAttendance(attMap);
+      }
+
+      // 3. Fetch group_members for this subgroup
       const { data: membersData, error: membersError } = await supabase
         .from('group_members')
         .select('athlete_id')
@@ -41,7 +78,7 @@ export default function AthletesListScreen() {
         return;
       }
 
-      // Fetch profiles for these athletes
+      // 4. Fetch profiles for these athletes
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name')
@@ -75,31 +112,72 @@ export default function AthletesListScreen() {
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
   const toggleAttendance = async (athleteId: string, isPresent: boolean) => {
-    // Update local state immediately for fast UI
-    setAttendance(prev => ({ ...prev, [athleteId]: isPresent }));
-
-    // TODO: Connect to Supabase attendance table
-    // Example implementation once the table exists:
-    /*
-    const today = new Date().toISOString().split('T')[0];
-    const { error } = await supabase.from('attendance').upsert({
-      athlete_id: athleteId,
-      subgroup_id: subgroup_id,
-      date: today,
-      status: isPresent ? 'present' : 'absent'
-    }, { onConflict: 'athlete_id, date' });
-    
-    if (error) {
-      console.error('Attendance update failed:', error);
-      Alert.alert('שגיאה', 'לא ניתן לעדכן נוכחות');
-      // Revert local state
+    if (!todayWorkout) {
+      Alert.alert('אין אימון היום', 'לא ניתן לסמן נוכחות ביום ללא אימון מוגדר.');
+      return;
     }
-    */
+
+    const status = isPresent ? 'present' : 'absent';
+    
+    // Update local state immediately for fast UI
+    setAttendance(prev => ({ ...prev, [athleteId]: status }));
+
+    try {
+      // Check if attendance already exists
+      const { data: existing } = await supabase
+        .from('attendance')
+        .select('id')
+        .eq('workout_id', todayWorkout.id)
+        .eq('athlete_id', athleteId)
+        .maybeSingle();
+
+      if (existing) {
+        await supabase
+          .from('attendance')
+          .update({ status })
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('attendance')
+          .insert({
+            workout_id: todayWorkout.id,
+            athlete_id: athleteId,
+            status: status
+          });
+      }
+    } catch (error) {
+      console.error('Attendance update failed:', error);
+      Alert.alert('שגיאה', 'לא ניתן לעדכן נוכחות בשרת.');
+    }
   };
 
-  const handleLogResult = (athlete: Athlete) => {
-    Alert.alert('רישום תוצאה', `פתיחת טופס רישום תוצאה עבור ${athlete.name}`);
-    // TODO: Build modal or navigate to result logging screen
+  const openResultModal = (athlete: Athlete) => {
+    setSelectedAthlete(athlete);
+    setResultData({ duration: '', distance: '', rpe: '', notes: '' });
+    setResultModalVisible(true);
+  };
+
+  const handleSaveResult = async () => {
+    if (!selectedAthlete) return;
+    setSavingResult(true);
+    try {
+      await supabase.from('performance_results').insert({
+        athlete_id: selectedAthlete.id,
+        subgroup_id: subgroup_id,
+        workout_id: todayWorkout?.id || null,
+        duration_min: resultData.duration ? parseInt(resultData.duration) : null,
+        distance_km: resultData.distance ? parseFloat(resultData.distance) : null,
+        rpe: resultData.rpe ? parseInt(resultData.rpe) : null,
+        notes: resultData.notes,
+        recorded_at: new Date().toISOString().split('T')[0]
+      });
+      setResultModalVisible(false);
+      Alert.alert('הצלחה', 'התוצאה נשמרה בהצלחה.');
+    } catch (e) {
+      Alert.alert('שגיאה', 'שמירת התוצאה נכשלה.');
+    } finally {
+      setSavingResult(false);
+    }
   };
 
   // ─── UI ───────────────────────────────────────────────────────────────────
@@ -124,9 +202,14 @@ export default function AthletesListScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#22c55e" />
         }
       >
-        <Text className="text-white text-right text-base mb-6 text-neutral-400">
-          סימון נוכחות יומי ורישום תוצאות למתאמנים בקבוצה.
-        </Text>
+        <View className="bg-[#111111] border border-neutral-800 rounded-2xl p-4 mb-6">
+           <Text className="text-white text-right text-base font-bold mb-1">
+             {todayWorkout ? `אימון היום: ${todayWorkout.title}` : 'אין אימון מתוזמן להיום'}
+           </Text>
+           <Text className="text-neutral-500 text-right text-sm">
+             {todayWorkout ? 'ניתן לסמן נוכחות ולתעד תוצאות.' : 'חזור ליומן כדי לתזמן אימון.'}
+           </Text>
+        </View>
 
         {athletes.length === 0 ? (
           <View className="bg-[#111111] border border-neutral-800 rounded-2xl p-8 items-center mt-4">
@@ -137,8 +220,8 @@ export default function AthletesListScreen() {
           </View>
         ) : (
           athletes.map(athlete => {
-            const isPresent = attendance[athlete.id] === true;
-            const isAbsent = attendance[athlete.id] === false;
+            const isPresent = attendance[athlete.id] === 'present';
+            const isAbsent = attendance[athlete.id] === 'absent';
 
             return (
               <View
@@ -173,7 +256,7 @@ export default function AthletesListScreen() {
                   
                   {/* Log Result Button */}
                   <TouchableOpacity
-                    onPress={() => handleLogResult(athlete)}
+                    onPress={() => openResultModal(athlete)}
                     activeOpacity={0.7}
                     style={{
                       flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -227,6 +310,89 @@ export default function AthletesListScreen() {
           })
         )}
       </ScrollView>
+
+      {/* Result Modal */}
+      <Modal
+        visible={resultModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setResultModalVisible(false)}
+      >
+        <View className="flex-1 justify-end bg-black/60">
+          <View className="bg-[#111111] rounded-t-[32px] p-6 border-t border-neutral-800">
+            <View className="flex-row justify-between items-center mb-6">
+              <TouchableOpacity onPress={() => setResultModalVisible(false)} className="p-2">
+                <X color="#52525b" size={24} />
+              </TouchableOpacity>
+              <Text className="text-white text-xl font-bold">רישום תוצאה - {selectedAthlete?.name}</Text>
+            </View>
+
+            <View className="space-y-4">
+              <View className="flex-row gap-4">
+                <View className="flex-1">
+                  <Text className="text-neutral-400 text-right mb-2 text-sm">מרחק (ק״מ)</Text>
+                  <TextInput
+                    className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-white text-right"
+                    placeholder="0.0"
+                    placeholderTextColor="#52525b"
+                    keyboardType="numeric"
+                    value={resultData.distance}
+                    onChangeText={v => setResultData(prev => ({ ...prev, distance: v }))}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-neutral-400 text-right mb-2 text-sm">זמן (דקות)</Text>
+                  <TextInput
+                    className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-white text-right"
+                    placeholder="0"
+                    placeholderTextColor="#52525b"
+                    keyboardType="numeric"
+                    value={resultData.duration}
+                    onChangeText={v => setResultData(prev => ({ ...prev, duration: v }))}
+                  />
+                </View>
+              </View>
+
+              <View>
+                <Text className="text-neutral-400 text-right mb-2 text-sm">רמת מאמץ (RPE 1-10)</Text>
+                <TextInput
+                  className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-white text-right"
+                  placeholder="1-10"
+                  placeholderTextColor="#52525b"
+                  keyboardType="numeric"
+                  value={resultData.rpe}
+                  onChangeText={v => setResultData(prev => ({ ...prev, rpe: v }))}
+                />
+              </View>
+
+              <View>
+                <Text className="text-neutral-400 text-right mb-2 text-sm">הערות</Text>
+                <TextInput
+                  className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-white text-right min-h-[80px]"
+                  placeholder="איך היה האימון?"
+                  placeholderTextColor="#52525b"
+                  multiline
+                  value={resultData.notes}
+                  onChangeText={v => setResultData(prev => ({ ...prev, notes: v }))}
+                />
+              </View>
+
+              <TouchableOpacity
+                onPress={handleSaveResult}
+                disabled={savingResult}
+                className={`bg-[#22c55e] rounded-2xl p-4 items-center mt-6 ${savingResult ? 'opacity-50' : ''}`}
+              >
+                {savingResult ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text className="text-white font-bold text-lg">שמור תוצאה</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+

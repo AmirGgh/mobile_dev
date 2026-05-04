@@ -205,10 +205,7 @@ export default function DashboardScreen() {
   }, [fetchData]);
 
   const handleGeneratePlan = () => {
-    Alert.alert(
-      'בקרוב! 🚀',
-      'פיצ׳ר יצירת תוכניות שוטפות יתווסף בקרוב. ניתן ליצור תוכנית דרך תהליך ההרשמה.',
-    );
+    router.push('/ai-coach');
   };
 
   // ── Loading state ───────────────────────────────────────────────────────
