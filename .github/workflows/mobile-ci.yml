@@ -1,0 +1,118 @@
+name: TriPro Mobile CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: 🧪 Test & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run Lint
+        run: npm run lint
+
+      - name: ⌨️ Check Types
+        run: npm run type-check
+
+  build-android:
+    name: 📱 Build Android APK
+    needs: test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 🏗 Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗 Prebuild Native Files
+        run: npx expo prebuild --platform android --non-interactive
+
+      - name: 🚀 Build Release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon --stacktrace
+          cp app/build/outputs/apk/release/app-release-unsigned.apk ../TriPro-Android-Release.apk
+
+      - name: 📦 Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TriPro-Android-APK
+          path: TriPro-Android-Release.apk
+
+  build-ios:
+    name: 🍎 Build iOS (Simulator)
+    needs: test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗 Prebuild Native Files
+        run: npx expo prebuild --platform ios --non-interactive
+
+      - name: 📦 Restore Pods Cache
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: 📦 Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: 🚀 Build iOS App (Simulator)
+        run: |
+          xcodebuild -workspace ios/*.xcworkspace \
+            -scheme mobile_dev \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -derivedDataPath build
+          cp -r build/Build/Products/Release-iphonesimulator/mobile_dev.app ./TriPro-iOS-Simulator.app
+
+      - name: 📦 Upload iOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TriPro-iOS-Simulator
+          path: TriPro-iOS-Simulator.app
