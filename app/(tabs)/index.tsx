@@ -119,7 +119,7 @@ function SubgroupCard({
 
 // ─── Main Dashboard Screen ────────────────────────────────────────────────────
 export default function DashboardScreen() {
-  // const router = useRouter();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState('');
