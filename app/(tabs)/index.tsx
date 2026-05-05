@@ -156,16 +156,24 @@ export default function DashboardScreen() {
         // User is likely an athlete, check group_members
         const { data: membership } = await supabase
           .from('group_members')
-          .select('subgroup_id, subgroups(name)')
+          .select('subgroup_id')
           .eq('athlete_id', user.id)
           .eq('assignment_status', 'assigned')
           .maybeSingle();
 
         if (membership && membership.subgroup_id) {
-          subgroupList = [{ 
-            id: membership.subgroup_id, 
-            name: (membership as any).subgroups?.name ?? t('הקבוצה שלי', 'My Squad') 
-          }];
+          const { data: subgroup } = await supabase
+            .from('subgroups')
+            .select('id, name')
+            .eq('id', membership.subgroup_id)
+            .maybeSingle();
+
+          if (subgroup) {
+            subgroupList = [{ 
+              id: subgroup.id, 
+              name: subgroup.name || t('הקבוצה שלי', 'My Squad') 
+            }];
+          }
         }
       }
 
