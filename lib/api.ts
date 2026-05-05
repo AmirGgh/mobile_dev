@@ -1,7 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { Platform } from 'react-native';
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "http://129.159.159.142:8080").replace(/\/+$/, "");
+const API_BASE_URL = (
+  process.env.EXPO_PUBLIC_API_URL && 
+  process.env.EXPO_PUBLIC_API_URL !== "undefined" && 
+  process.env.EXPO_PUBLIC_API_URL !== ""
+    ? process.env.EXPO_PUBLIC_API_URL 
+    : "http://129.159.159.142:8080"
+).replace(/\/+$/, "");
 const AUTH_TOKEN_KEY = "tri_pro_auth_token";
 const AUTH_USER_KEY = "tri_pro_auth_user";
 

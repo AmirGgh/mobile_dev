@@ -52,14 +52,31 @@ jobs:
         env:
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
         run: |
-          # Overwrite .env so the committed placeholder never wins
-          echo "EXPO_PUBLIC_API_URL=${EXPO_PUBLIC_API_URL}" > .env
-          echo "Injected API URL: ${EXPO_PUBLIC_API_URL}"
+          if [ -z "$EXPO_PUBLIC_API_URL" ]; then
+            echo "::warning::EXPO_PUBLIC_API_URL secret is missing! App will fall back to default IP."
+            # Optional: provide a fallback here if you want to force a specific IP in CI
+            echo "EXPO_PUBLIC_API_URL=http://129.159.159.142:8080" > .env
+          else
+            echo "EXPO_PUBLIC_API_URL=${EXPO_PUBLIC_API_URL}" > .env
+            echo "Successfully injected API URL from secrets."
+          fi
+          cat .env | sed 's/=.*/=******/'
 
       - name: 🏗 Prebuild Native Files
         env:
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
-        run: npx expo prebuild --platform android --non-interactive
+        run: npx expo prebuild --platform android --non-interactive --clean
+
+      - name: 🔐 Enable Cleartext (HTTP) Support
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST" ]; then
+            # Add usesCleartextTraffic="true" to the <application> tag if not already present
+            if ! grep -q "android:usesCleartextTraffic" "$MANIFEST"; then
+              sed -i 's/<application/<application android:usesCleartextTraffic="true"/' "$MANIFEST"
+              echo "Manually enabled Cleartext Traffic in AndroidManifest.xml"
+            fi
+          fi
 
       - name: 🏗 Setup Java
         uses: actions/setup-java@v4
