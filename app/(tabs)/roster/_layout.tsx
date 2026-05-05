@@ -1,6 +1,9 @@
 import { Stack } from 'expo-router';
+import { useLanguage } from '../../../lib/LanguageContext';
 
 export default function RosterLayout() {
+  const { t } = useLanguage();
+
   return (
     <Stack screenOptions={{ 
       headerShown: true,
@@ -12,11 +15,11 @@ export default function RosterLayout() {
     }}>
       <Stack.Screen 
         name="index" 
-        options={{ title: 'הקבוצות שלי' }} 
+        options={{ title: t('הקבוצות שלי', 'My Groups') }} 
       />
       <Stack.Screen 
         name="[subgroup_id]" 
-        options={{ title: 'רשימת מתאמנים', headerBackTitle: 'חזור' }} 
+        options={{ title: t('רשימת מתאמנים', 'Roster'), headerBackTitle: t('חזור', 'Back') }} 
       />
     </Stack>
   );

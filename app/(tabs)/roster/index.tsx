@@ -7,6 +7,7 @@ import {
 import { useRouter } from 'expo-router';
 import { api as supabase } from '../../../lib/api';
 import { Users, ChevronLeft } from 'lucide-react-native';
+import { useLanguage } from '../../../lib/LanguageContext';
 
 interface Subgroup {
   id: string;
@@ -18,6 +19,7 @@ export default function RosterScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [subgroups, setSubgroups] = useState<Subgroup[]>([]);
+  const { t } = useLanguage();
 
   const fetchData = useCallback(async () => {
     try {
@@ -75,14 +77,14 @@ export default function RosterScreen() {
         }
       >
         <Text className="text-white text-right text-base mb-6 text-neutral-400">
-          בחר קבוצה כדי לצפות ברשימת המתאמנים ולנהל נוכחות.
+          {t('בחר קבוצה כדי לצפות ברשימת המתאמנים ולנהל נוכחות.', 'Select a group to view the roster and manage attendance.')}
         </Text>
 
         {subgroups.length === 0 ? (
           <View className="bg-[#111111] border border-neutral-800 rounded-2xl p-8 items-center mt-4">
             <Users color="#525252" size={40} />
             <Text className="text-neutral-500 text-center mt-4 font-medium">
-              לא נמצאו קבוצות תחת ניהולך.
+              {t('לא נמצאו קבוצות תחת ניהולך.', 'No groups found under your management.')}
             </Text>
           </View>
         ) : (

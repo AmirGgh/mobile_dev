@@ -4,6 +4,7 @@ import { View, Text, ScrollView, ActivityIndicator, RefreshControl, TouchableOpa
 import { useRouter } from 'expo-router';
 import { CalendarDays, MapPin, Clock, ChevronRight } from 'lucide-react-native';
 import { api as supabase } from '../../lib/api';
+import { useLanguage } from '../../lib/LanguageContext';
 
 interface Workout {
   id: string;
@@ -19,6 +20,7 @@ export default function CalendarScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const { t, language } = useLanguage();
 
   const fetchWorkouts = useCallback(async () => {
     try {
@@ -105,7 +107,7 @@ export default function CalendarScreen() {
         }
       >
         <View className="flex-row items-center justify-end gap-3 mb-8">
-          <Text className="text-white text-2xl font-bold">לוח אימונים</Text>
+          <Text className="text-white text-2xl font-bold">{t('לוח אימונים', 'Calendar')}</Text>
           <View className="w-10 h-10 rounded-xl bg-[#22c55e]/10 items-center justify-center">
             <CalendarDays color="#22c55e" size={24} />
           </View>
@@ -113,13 +115,13 @@ export default function CalendarScreen() {
 
         {workouts.length === 0 ? (
           <View className="flex-1 items-center justify-center py-20">
-            <Text className="text-neutral-500 text-center">אין אימונים מתוזמנים</Text>
+            <Text className="text-neutral-500 text-center">{t('אין אימונים מתוזמנים', 'No scheduled workouts')}</Text>
           </View>
         ) : (
           sortedDates.map(date => (
             <View key={date} className="mb-6">
               <Text className="text-neutral-400 text-right font-bold mb-3 mr-2">
-                {new Date(date).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {new Date(date).toLocaleDateString(language === 'en' ? 'en-US' : 'he-IL', { weekday: 'long', day: 'numeric', month: 'long' })}
               </Text>
               {groupedWorkouts[date].map(workout => (
                 <TouchableOpacity

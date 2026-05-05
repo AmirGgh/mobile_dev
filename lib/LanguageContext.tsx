@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type LanguageContextType = {
   language: 'he' | 'en';
   setLanguage: (lang: 'he' | 'en') => void;
-  t: (key: string) => string;
+  t: (key: string, en?: string) => string;
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -35,7 +35,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     await AsyncStorage.setItem('app_language', lang);
   };
 
-  const t = (key: string): string => {
+  const t = (key: string, en?: string): string => {
+    if (language === 'en' && en) return en;
     return translations[key]?.[language] || key;
   };
 

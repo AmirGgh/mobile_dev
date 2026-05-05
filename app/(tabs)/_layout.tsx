@@ -1,9 +1,11 @@
 import { Tabs, useRouter } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { Home, User, Bot, CalendarDays, Users, Wrench } from 'lucide-react-native';
+import { useLanguage } from '../../lib/LanguageContext';
 
 export default function TabLayout() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   return (
     <Tabs screenOptions={{ 
@@ -24,35 +26,35 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'בית',
+          title: t('בית', 'Home'),
           tabBarIcon: ({ color }) => <Home size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="calendar"
         options={{
-          title: 'לוח אימונים',
+          title: t('לוח אימונים', 'Calendar'),
           tabBarIcon: ({ color }) => <CalendarDays size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="roster"
         options={{
-          title: 'קבוצות',
+          title: t('קבוצות', 'Roster'),
           tabBarIcon: ({ color }) => <Users size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="tools"
         options={{
-          title: 'כלים',
+          title: t('כלים', 'Tools'),
           tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="ai-coach"
         options={{
-          title: 'מאמן AI',
+          title: t('מאמן AI', 'AI Coach'),
           tabBarIcon: ({ color }) => <Bot size={24} color={color} />,
         }}
       />
@@ -60,7 +62,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           href: null,
-          title: 'פרופיל',
+          title: t('פרופיל', 'Profile'),
         }}
       />
       {/* Hidden stub screens — suppress Expo Router warnings */}

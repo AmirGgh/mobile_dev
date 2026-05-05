@@ -109,11 +109,11 @@ jobs:
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
         run: |
           xcodebuild -workspace ios/*.xcworkspace \
-            -scheme mobiledev \
+            -scheme TriPro \
             -configuration Release \
             -sdk iphonesimulator \
             -derivedDataPath build
-          cp -r build/Build/Products/Release-iphonesimulator/mobiledev.app ./TriPro-iOS-Simulator.app
+          cp -r build/Build/Products/Release-iphonesimulator/TriPro.app ./TriPro-iOS-Simulator.app
 
       - name: 📦 Upload iOS Artifact
         uses: actions/upload-artifact@v4
