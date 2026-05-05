@@ -33,7 +33,7 @@ jobs:
   build-android:
     name: 📱 Build Android APK
     needs: test
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Checkout repository
@@ -74,7 +74,7 @@ jobs:
   build-ios:
     name: 🍎 Build iOS (Simulator)
     needs: test
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
     runs-on: macos-latest
     steps:
       - name: 🏗 Checkout repository
