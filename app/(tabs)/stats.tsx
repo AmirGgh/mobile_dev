@@ -14,10 +14,13 @@ export default function StatsScreen() {
     subgroupIds: [] as string[],
   });
 
+  const { t, language } = useLanguage();
+
   // Report State
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [loadingReport, setLoadingReport] = useState(false);
   const [reportContent, setReportContent] = useState('');
+  const [reportSubgroupId, setReportSubgroupId] = useState<string | null>(null);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -62,6 +65,10 @@ export default function StatsScreen() {
         subgroupsCount: sgroupIds.length,
         subgroupIds: sgroupIds,
       });
+
+      if (sgroupIds.length > 0 && !reportSubgroupId) {
+        setReportSubgroupId(sgroupIds[0]);
+      }
     } catch (err) {
       console.error('[Stats] Fetch error:', err);
     } finally {
@@ -88,8 +95,8 @@ export default function StatsScreen() {
       const { data, error } = await supabase.functions.invoke('weekly-report', {
         body: {
           coachId: user?.id,
-          subgroupId: stats.subgroupIds[0], // For now, first subgroup
-          language: 'he'
+          subgroupId: reportSubgroupId || stats.subgroupIds[0],
+          language: language === 'he' ? 'he' : 'en'
         }
       });
       if (error) throw error;
@@ -129,9 +136,9 @@ export default function StatsScreen() {
         </View>
 
         <View className="flex-row flex-wrap gap-4 justify-between mb-8">
-          <StatCard title="סה״כ מתאמנים" value={stats.totalAthletes} icon={<Users color="#3b82f6" size={20} />} color="bg-blue-500/10" textColor="text-blue-500" />
-          <StatCard title="אימונים קרובים" value={stats.upcomingWorkouts} icon={<Calendar color="#22c55e" size={20} />} color="bg-green-500/10" textColor="text-green-500" />
-          <StatCard title="תתי-קבוצות" value={stats.subgroupsCount} icon={<Award color="#a855f7" size={20} />} color="bg-purple-500/10" textColor="text-purple-500" />
+          <StatCard title={t('סה״כ מתאמנים', 'Total Athletes')} value={stats.totalAthletes} icon={<Users color="#3b82f6" size={20} />} color="bg-blue-500/10" textColor="text-blue-500" />
+          <StatCard title={t('אימונים קרובים', 'Upcoming Workouts')} value={stats.upcomingWorkouts} icon={<Calendar color="#22c55e" size={20} />} color="bg-green-500/10" textColor="text-green-500" />
+          <StatCard title={t('תתי-קבוצות', 'Subgroups')} value={stats.subgroupsCount} icon={<Award color="#a855f7" size={20} />} color="bg-purple-500/10" textColor="text-purple-500" />
         </View>
 
         {/* Weekly Report Button */}
@@ -143,11 +150,17 @@ export default function StatsScreen() {
             <Sparkles color="#3b82f6" size={20} />
           </View>
           <View className="items-end flex-1 mr-4">
-            <Text className="text-white font-bold text-lg">דוח שבועי חכם</Text>
-            <Text className="text-neutral-500 text-sm">סיכום פעילות הקבוצה עם AI</Text>
+            <Text className="text-white font-bold text-lg">{t('דוח שבועי חכם', 'Weekly AI Report')}</Text>
+            <Text className="text-neutral-500 text-sm">{t('סיכום פעילות הקבוצה עם AI', 'Group activity summary via AI')}</Text>
           </View>
           <FileText color="#52525b" size={24} />
         </TouchableOpacity>
+
+        {stats.subgroupIds.length > 1 && (
+          <View className="mt-4 flex-row justify-end gap-2 px-2">
+            <Text className="text-neutral-500 text-xs italic">{t('מייצר דוח עבור תת-הקבוצה הראשונה', 'Generating report for the primary subgroup')}</Text>
+          </View>
+        )}
 
         <View className="mt-10 bg-[#111111] border border-neutral-800 rounded-3xl p-6 items-center">
           <Text className="text-neutral-400 text-center text-sm leading-6">

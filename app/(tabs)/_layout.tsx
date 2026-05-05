@@ -1,6 +1,6 @@
 import { Tabs, useRouter } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
-import { Home, User, Bot, CalendarDays, Users, Wrench } from 'lucide-react-native';
+import { Home, User, Bot, CalendarDays, Users, Wrench, Wallet } from 'lucide-react-native';
 import { useLanguage } from '../../lib/LanguageContext';
 
 export default function TabLayout() {
@@ -49,6 +49,13 @@ export default function TabLayout() {
         options={{
           title: t('כלים', 'Tools'),
           tabBarIcon: ({ color }) => <Wrench size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="finance"
+        options={{
+          title: t('כספים', 'Finance'),
+          tabBarIcon: ({ color }) => <Wallet size={24} color={color} />,
         }}
       />
       <Tabs.Screen
