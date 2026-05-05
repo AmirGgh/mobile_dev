@@ -71,7 +71,7 @@ export default function FinanceScreen() {
           .in('id', athleteIds);
         
         const profileMap: Record<string, any> = {};
-        (profiles || []).forEach(p => { profileMap[p.id] = p; });
+        (profiles || []).forEach((p: any) => { profileMap[p.id] = p; });
 
         subList.forEach(s => {
           s.full_name = profileMap[s.athlete_id]?.full_name;

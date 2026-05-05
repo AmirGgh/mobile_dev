@@ -2,7 +2,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView,
-  ActivityIndicator, RefreshControl
+  ActivityIndicator, RefreshControl, Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { api as supabase } from '../../../lib/api';

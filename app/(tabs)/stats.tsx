@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, RefreshControl, TouchableOpacity, Modal } from 'react-native';
 import { BarChart3, Users, Calendar, Award, FileText, X, Sparkles } from 'lucide-react-native';
 import { api as supabase } from '../../lib/api';
+import { useLanguage } from '../../lib/LanguageContext';
 
 export default function StatsScreen() {
   const [loading, setLoading] = useState(true);
