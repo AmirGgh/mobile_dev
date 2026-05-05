@@ -48,6 +48,14 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
 
+      - name: 🔧 Inject environment variables
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
+        run: |
+          # Overwrite .env so the committed placeholder never wins
+          echo "EXPO_PUBLIC_API_URL=${EXPO_PUBLIC_API_URL}" > .env
+          echo "Injected API URL: ${EXPO_PUBLIC_API_URL}"
+
       - name: 🏗 Prebuild Native Files
         env:
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
@@ -71,8 +79,9 @@ jobs:
       - name: 📦 Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: TriPro-Android-APK
+          name: TriPro-Android-APK-${{ github.run_number }}-${{ github.sha }}
           path: TriPro-Android-Release.apk
+          retention-days: 7
 
   build-ios:
     name: 🍎 Build iOS (Simulator)
