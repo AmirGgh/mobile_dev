@@ -284,18 +284,18 @@ export default function FinanceScreen() {
             <View className="space-y-4">
               <View>
                 <Text className="text-neutral-400 text-right mb-2 text-sm">{t('בחר ספורטאי', 'Select Athlete')}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingHorizontal: 4 }}>
                   {subscriptions.map(s => (
                     <TouchableOpacity
                       key={s.id}
                       onPress={() => setPaymentAthleteId(s.athlete_id)}
-                      className={`px-4 py-3 rounded-xl border ${paymentAthleteId === s.athlete_id ? 'bg-[#22c55e]/10 border-[#22c55e]' : 'bg-neutral-900 border-neutral-800'}`}
+                      className={`px-5 py-4 rounded-2xl border-2 ${paymentAthleteId === s.athlete_id ? 'bg-[#22c55e]/20 border-[#22c55e]' : 'bg-neutral-900 border-neutral-800'}`}
                     >
-                      <Text className={`font-bold ${paymentAthleteId === s.athlete_id ? 'text-[#22c55e]' : 'text-neutral-500'}`}>
+                      <Text className={`font-bold text-base ${paymentAthleteId === s.athlete_id ? 'text-[#22c55e]' : 'text-neutral-300'}`}>
                         {s.full_name || s.email}
                       </Text>
                       {Number(s.balance ?? 0) > 0 && (
-                        <Text className="text-[10px] text-red-500 text-center">₪{s.balance}</Text>
+                        <Text className="text-xs text-red-500 font-medium mt-1">₪{s.balance} חוב</Text>
                       )}
                     </TouchableOpacity>
                   ))}
