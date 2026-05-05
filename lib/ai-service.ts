@@ -6,21 +6,18 @@
 //   • askCoachChat(prompt)         → Proxies to tri-pro backend /ai-coach-chat
 // ──────────────────────────────────────────────────────────────────────────────
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export const askCoachChat = async (prompt: string): Promise<string> => {
   try {
-    // The tri-pro backend expects a "messages" array
-    // Note: The backend uses SSE. For simplicity in the mobile app, 
-    // we will fetch the full response if possible, or handle the stream.
-    // However, since askCoachChat is expected to return a string, 
-    // we'll implement a non-streaming fetch if the backend supports it, 
-    // or just aggregate the stream.
-    
-    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/functions/ai-coach-chat`, {
+    const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8080").replace(/\/+$/, "");
+    const token = await AsyncStorage.getItem("tri_pro_auth_token");
+
+    const response = await fetch(`${API_BASE_URL}/api/functions/ai-coach-chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // In a real app, you'd add the Auth token here. 
-        // Our api client handles this in its request() method, but for fetch we need to do it manually.
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
       body: JSON.stringify({
         messages: [{ role: 'user', content: prompt }]
@@ -31,40 +28,39 @@ export const askCoachChat = async (prompt: string): Promise<string> => {
       throw new Error('Failed to connect to AI Coach');
     }
 
-    // Since the backend returns an SSE stream, we need to parse it.
-    const reader = response.body?.getReader();
-    if (!reader) {
-      throw new Error('No response body');
-    }
-
-    const decoder = new TextDecoder();
+    // React Native's fetch does not natively support response.body.getReader() for streams.
+    // Instead, we wait for the entire text to finish downloading, then parse the SSE format.
+    const text = await response.text();
+    const lines = text.split('\n');
     let aggregatedText = '';
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
-      
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(data);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              aggregatedText += content;
-            }
-          } catch {
-            // Partial JSON or empty data
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const parsed = JSON.parse(data);
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (content) {
+            aggregatedText += content;
           }
+        } catch {
+          // Partial JSON or empty data
         }
       }
     }
 
-    return aggregatedText;
+    // Fallback if the backend decides to return standard JSON instead of SSE streaming:
+    if (!aggregatedText && text.trim().startsWith('{')) {
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed.choices?.[0]?.message?.content) {
+          aggregatedText = parsed.choices[0].message.content;
+        }
+      } catch (e) {}
+    }
+
+    return aggregatedText || text;
   } catch (error: any) {
     console.error('[ai-service] Error calling backend AI:', error);
     throw new Error(error?.message ?? 'שגיאה בתקשורת עם המאמן');

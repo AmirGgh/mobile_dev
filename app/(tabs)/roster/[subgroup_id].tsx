@@ -4,23 +4,35 @@ import {
   View, Text, ScrollView, ActivityIndicator,
   TouchableOpacity, RefreshControl, Alert, Modal, TextInput
 } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { api as supabase } from '../../../lib/api';
-import { User, CheckCircle2, XCircle, Timer, X } from 'lucide-react-native';
+import { User, CheckCircle2, XCircle, Timer, X, Star, Trophy, Award } from 'lucide-react-native';
+import { awardCoachExcellence, awardRaceParticipation } from '../../../lib/xp-service';
+import { useLanguage } from '../../../lib/LanguageContext';
 
 interface Athlete {
   id: string;
   name: string;
+  total_xp: number;
+  level: number;
 }
 
 export default function AthletesListScreen() {
   const { subgroup_id } = useLocalSearchParams<{ subgroup_id: string }>();
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   
   const [todayWorkout, setTodayWorkout] = useState<any>(null);
   const [attendance, setAttendance] = useState<Record<string, string>>({});
+  const { t } = useLanguage();
+
+  // XP Modal State
+  const [xpModalVisible, setXpModalVisible] = useState(false);
+  const [xpAwardType, setXpAwardType] = useState<'race' | 'excellence'>('excellence');
+  const [xpReason, setXpReason] = useState('');
+  const [awardingXp, setAwardingXp] = useState(false);
 
   // Result Modal State
   const [resultModalVisible, setResultModalVisible] = useState(false);
@@ -81,7 +93,7 @@ export default function AthletesListScreen() {
       // 4. Fetch profiles for these athletes
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name')
+        .select('id, full_name, total_xp, level')
         .in('id', athleteIds);
 
       if (profilesError) throw profilesError;
@@ -89,6 +101,8 @@ export default function AthletesListScreen() {
       const formattedAthletes = (profilesData || []).map((p: any) => ({
         id: p.id,
         name: p.full_name || 'מתאמן ללא שם',
+        total_xp: p.total_xp || 0,
+        level: p.level || 1,
       }));
 
       setAthletes(formattedAthletes);
@@ -180,6 +194,26 @@ export default function AthletesListScreen() {
     }
   };
 
+  const handleAwardXp = async () => {
+    if (!selectedAthlete || !xpReason.trim()) return;
+    setAwardingXp(true);
+    try {
+      if (xpAwardType === 'race') {
+        await awardRaceParticipation(selectedAthlete.id, xpReason);
+      } else {
+        await awardCoachExcellence(selectedAthlete.id, xpReason);
+      }
+      setXpModalVisible(false);
+      setXpReason('');
+      Alert.alert(t('הצלחה', 'Success'), t('XP הוענק בהצלחה', 'XP awarded successfully'));
+      fetchAthletes();
+    } catch (e) {
+      Alert.alert(t('שגיאה', 'Error'), t('שגיאה בהענקת XP', 'Error awarding XP'));
+    } finally {
+      setAwardingXp(false);
+    }
+  };
+
   // ─── UI ───────────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -203,11 +237,20 @@ export default function AthletesListScreen() {
         }
       >
         <View className="bg-[#111111] border border-neutral-800 rounded-2xl p-4 mb-6">
-           <Text className="text-white text-right text-base font-bold mb-1">
-             {todayWorkout ? `אימון היום: ${todayWorkout.title}` : 'אין אימון מתוזמן להיום'}
-           </Text>
+           <View className="flex-row justify-between items-start mb-2">
+             <TouchableOpacity 
+               onPress={() => router.push(`/benchmarks/${subgroup_id}`)}
+               className="bg-purple-500/10 px-3 py-1.5 rounded-lg border border-purple-500/20 flex-row items-center gap-2"
+             >
+               <Trophy color="#a855f7" size={16} />
+               <Text className="text-[#a855f7] font-bold text-xs">{t('מדדים', 'Benchmarks')}</Text>
+             </TouchableOpacity>
+             <Text className="text-white text-right text-base font-bold">
+               {todayWorkout ? `אימון היום: ${todayWorkout.title}` : t('אין אימון להיום', 'No workout today')}
+             </Text>
+           </View>
            <Text className="text-neutral-500 text-right text-sm">
-             {todayWorkout ? 'ניתן לסמן נוכחות ולתעד תוצאות.' : 'חזור ליומן כדי לתזמן אימון.'}
+             {todayWorkout ? t('ניתן לסמן נוכחות ולתעד תוצאות.', 'You can mark attendance and log results.') : t('חזור ליומן כדי לתזמן אימון.', 'Go back to calendar to schedule.')}
            </Text>
         </View>
 
@@ -237,16 +280,24 @@ export default function AthletesListScreen() {
               >
                 {/* Header: Avatar + Name */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 16 }}>
-                  <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 16, marginRight: 12 }}>
-                    {athlete.name}
-                  </Text>
+                  <View style={{ alignItems: 'flex-end', marginRight: 12 }}>
+                    <Text style={{ color: '#ffffff', fontWeight: 'bold', fontSize: 16 }}>
+                      {athlete.name}
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      <Text style={{ color: '#a3a3a3', fontSize: 12 }}>{t('רמה', 'Lv')} {athlete.level}</Text>
+                      <View style={{ width: 4, height: 4, borderRadius: 2, backgroundColor: '#404040' }} />
+                      <Text style={{ color: '#a3a3a3', fontSize: 12 }}>{athlete.total_xp} XP</Text>
+                    </View>
+                  </View>
                   <View style={{
-                    width: 40, height: 40, borderRadius: 20,
-                    backgroundColor: '#262626',
+                    width: 44, height: 44, borderRadius: 14,
+                    backgroundColor: '#1a1a1a',
+                    borderWidth: 1, borderColor: '#262626',
                     alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <Text style={{ color: '#a3a3a3', fontWeight: 'bold', fontSize: 14 }}>
-                      {athlete.name.substring(0, 2)}
+                    <Text style={{ color: '#22c55e', fontWeight: 'bold', fontSize: 16 }}>
+                      {athlete.name.substring(0, 1)}
                     </Text>
                   </View>
                 </View>
@@ -267,7 +318,28 @@ export default function AthletesListScreen() {
                   >
                     <Timer color="#3b82f6" size={16} />
                     <Text style={{ color: '#3b82f6', fontWeight: '600', fontSize: 13 }}>
-                      רישום תוצאה
+                      {t('רישום תוצאה', 'Result')}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedAthlete(athlete);
+                      setXpAwardType('excellence');
+                      setXpReason('');
+                      setXpModalVisible(true);
+                    }}
+                    activeOpacity={0.7}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center', gap: 6,
+                      backgroundColor: 'rgba(245,158,11,0.1)',
+                      borderWidth: 1, borderColor: 'rgba(245,158,11,0.3)',
+                      borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12,
+                    }}
+                  >
+                    <Star color="#f59e0b" size={16} />
+                    <Text style={{ color: '#f59e0b', fontWeight: '600', fontSize: 13 }}>
+                      {t('הענק XP', 'Award XP')}
                     </Text>
                   </TouchableOpacity>
 
@@ -389,6 +461,65 @@ export default function AthletesListScreen() {
                 )}
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* XP Award Modal */}
+      <Modal
+        visible={xpModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setXpModalVisible(false)}
+      >
+        <View className="flex-1 justify-center bg-black/80 px-6">
+          <View className="bg-[#111111] rounded-[32px] p-6 border border-neutral-800">
+            <View className="flex-row justify-between items-center mb-6">
+              <TouchableOpacity onPress={() => setXpModalVisible(false)} className="p-2">
+                <X color="#52525b" size={24} />
+              </TouchableOpacity>
+              <Text className="text-white text-xl font-bold">{t('הענקת XP למתאמן', 'Award XP')}</Text>
+            </View>
+
+            <View className="flex-row gap-2 mb-6">
+              <TouchableOpacity 
+                onPress={() => setXpAwardType('excellence')}
+                className={`flex-1 p-3 rounded-xl border items-center ${xpAwardType === 'excellence' ? 'bg-primary/10 border-primary' : 'bg-neutral-900 border-neutral-800'}`}
+              >
+                <Award color={xpAwardType === 'excellence' ? '#22c55e' : '#52525b'} size={24} />
+                <Text className={`mt-2 text-xs font-bold ${xpAwardType === 'excellence' ? 'text-primary' : 'text-neutral-500'}`}>{t('מצוינות', 'Excellence')}</Text>
+                <Text className="text-[10px] text-neutral-500">+20 XP</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                onPress={() => setXpAwardType('race')}
+                className={`flex-1 p-3 rounded-xl border items-center ${xpAwardType === 'race' ? 'bg-amber-500/10 border-amber-500' : 'bg-neutral-900 border-neutral-800'}`}
+              >
+                <Trophy color={xpAwardType === 'race' ? '#f59e0b' : '#52525b'} size={24} />
+                <Text className={`mt-2 text-xs font-bold ${xpAwardType === 'race' ? 'text-amber-500' : 'text-neutral-500'}`}>{t('תחרות', 'Race')}</Text>
+                <Text className="text-[10px] text-neutral-500">+15 XP</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text className="text-neutral-400 text-right mb-2 text-sm">{t('סיבה / שם התחרות', 'Reason / Race Name')}</Text>
+            <TextInput
+              className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-white text-right mb-6"
+              placeholder={xpAwardType === 'race' ? t('לדוגמה: מרתון תל אביב', 'e.g. Marathon Tel Aviv') : t('לדוגמה: השקעה יוצאת דופן', 'e.g. Exceptional Effort')}
+              placeholderTextColor="#52525b"
+              value={xpReason}
+              onChangeText={setXpReason}
+            />
+
+            <TouchableOpacity
+              onPress={handleAwardXp}
+              disabled={awardingXp || !xpReason.trim()}
+              className={`bg-[#22c55e] rounded-2xl p-4 items-center ${awardingXp || !xpReason.trim() ? 'opacity-50' : ''}`}
+            >
+              {awardingXp ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <Text className="text-white font-bold text-lg">{t('הענק XP', 'Award XP')}</Text>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

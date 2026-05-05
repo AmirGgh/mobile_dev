@@ -7,6 +7,7 @@ import {
 import { api as supabase } from '../../lib/api';
 import { askCoachChat } from '../../lib/ai-service';
 import { Send, Bot, User } from 'lucide-react-native';
+import { useLanguage } from '../../lib/LanguageContext';
 
 type Message = {
   id: string;
@@ -22,6 +23,7 @@ export default function AICoachScreen() {
   const [loading, setLoading] = useState(false);
   const [session, setSession] = useState<any>(null);
   const flatListRef = useRef<FlatList>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchSessionAndMessages();
@@ -45,7 +47,7 @@ export default function AICoachScreen() {
           id: 'welcome',
           user_id: session.user.id,
           role: 'assistant',
-          content: 'היי! אני מאמן ה-AI שלך לטריאתלון. איך אוכל לעזור לך להתכונן לאימון הבא?',
+          content: t('היי! אני מאמן ה-AI שלך לטריאתלון. איך אוכל לעזור לך להתכונן לאימון הבא?', 'Hi! I am your AI Triathlon coach. How can I help you prepare for your next workout?'),
           created_at: new Date().toISOString()
         }]);
       }
@@ -99,7 +101,7 @@ export default function AICoachScreen() {
       }
     } catch (error: any) {
       console.error("Failed to fetch AI response", error);
-      Alert.alert('שגיאה', error?.message ?? 'לא הצלחנו לקבל תשובה מהמאמן. נסה שוב.');
+      Alert.alert(t('שגיאה', 'Error'), error?.message ?? t('לא הצלחנו לקבל תשובה מהמאמן. נסה שוב.', 'Could not get an answer from the coach. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -169,7 +171,7 @@ export default function AICoachScreen() {
             </TouchableOpacity>
             <TextInput
               className="flex-1 text-white text-right text-base py-3 px-4"
-              placeholder="שאל את המאמן..."
+              placeholder={t('שאל את המאמן...', 'Ask the coach...')}
               placeholderTextColor="#52525b"
               value={input}
               onChangeText={setInput}

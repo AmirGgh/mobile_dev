@@ -1,6 +1,7 @@
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { api as supabase } from '../lib/api';
+import { LanguageProvider } from '../lib/LanguageContext';
 // import { Session } from '@supabase/supabase-js';
 import '../global.css';
 import { View, ActivityIndicator } from 'react-native';
@@ -61,5 +62,9 @@ export default function RootLayout() {
     );
   }
 
-  return <Slot />;
+  return (
+    <LanguageProvider>
+      <Slot />
+    </LanguageProvider>
+  );
 }

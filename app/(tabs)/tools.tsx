@@ -2,8 +2,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Wrench, Play, Pause, RotateCcw, Timer as TimerIcon } from 'lucide-react-native';
+import { useLanguage } from '../../lib/LanguageContext';
 
 export default function ToolsScreen() {
+  const { t } = useLanguage();
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -43,7 +45,7 @@ export default function ToolsScreen() {
     <SafeAreaView className="flex-1 bg-[#09090b]">
       <ScrollView contentContainerStyle={{ padding: 20 }}>
         <View className="flex-row items-center justify-end gap-3 mb-8">
-          <Text className="text-white text-2xl font-bold">כלים ומדידות</Text>
+          <Text className="text-white text-2xl font-bold">{t('כלים ומדידות', 'Tools & Measurements')}</Text>
           <View className="w-10 h-10 rounded-xl bg-[#22c55e]/10 items-center justify-center">
             <Wrench color="#22c55e" size={24} />
           </View>
@@ -52,7 +54,7 @@ export default function ToolsScreen() {
         {/* Smart Stopwatch Card */}
         <View className="bg-[#111111] border border-neutral-800 rounded-[32px] p-8 items-center">
           <View className="flex-row items-center gap-2 mb-6">
-            <Text className="text-neutral-400 font-bold">סטופר חכם</Text>
+            <Text className="text-neutral-400 font-bold">{t('סטופר חכם', 'Smart Stopwatch')}</Text>
             <TimerIcon color="#52525b" size={16} />
           </View>
           
@@ -78,9 +80,9 @@ export default function ToolsScreen() {
         </View>
 
         <View className="mt-8 bg-blue-500/5 border border-blue-500/10 rounded-3xl p-6">
-          <Text className="text-blue-400 text-right font-bold mb-2">מחשבוני קצב (בקרוב)</Text>
+          <Text className="text-blue-400 text-right font-bold mb-2">{t('מחשבוני קצב (בקרוב)', 'Pace Calculators (Coming Soon)')}</Text>
           <Text className="text-neutral-500 text-right text-xs leading-5">
-            כאן תוכלו לחשב קצבי מטרה לפי זמני תחרות, אחוזי דופק והספקים (Watts).
+            {t('כאן תוכלו לחשב קצבי מטרה לפי זמני תחרות, אחוזי דופק והספקים (Watts).', 'Here you can calculate target paces based on race times, heart rate zones, and power (Watts).')}
           </Text>
         </View>
       </ScrollView>

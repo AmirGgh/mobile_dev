@@ -7,6 +7,7 @@ import {
 import { api as supabase } from '../../lib/api';
 import { useRouter } from 'expo-router';
 import { Mail, Lock, ChevronLeft, Activity } from 'lucide-react-native';
+import { useLanguage } from '../../lib/LanguageContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -14,6 +15,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
 
   async function resendConfirmation() {
     const { error } = await supabase.auth.resend({
@@ -63,23 +65,39 @@ export default function Login() {
         className="flex-1"
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View className="flex-1 justify-center px-8">
+          <View className="flex-1 justify-center px-8 relative">
+            
+            {/* Language Selection Onboarding */}
+            <View className="absolute top-4 right-0 z-10 flex-row gap-2">
+               <TouchableOpacity 
+                 onPress={() => setLanguage('he')}
+                 className={`px-3 py-1 rounded-full border ${language === 'he' ? 'border-[#22c55e] bg-[#22c55e]/10' : 'border-neutral-700 bg-neutral-800'}`}
+               >
+                 <Text className={`text-sm ${language === 'he' ? 'text-[#22c55e] font-bold' : 'text-neutral-400'}`}>עברית</Text>
+               </TouchableOpacity>
+               <TouchableOpacity 
+                 onPress={() => setLanguage('en')}
+                 className={`px-3 py-1 rounded-full border ${language === 'en' ? 'border-[#22c55e] bg-[#22c55e]/10' : 'border-neutral-700 bg-neutral-800'}`}
+               >
+                 <Text className={`text-sm ${language === 'en' ? 'text-[#22c55e] font-bold' : 'text-neutral-400'}`}>English</Text>
+               </TouchableOpacity>
+            </View>
             
             <View className="items-center mb-12">
               <View className="w-16 h-16 bg-neutral-800 rounded-2xl items-center justify-center mb-6">
                 <Activity color="#ffffff" size={32} />
               </View>
               <Text className="text-white text-4xl font-bold tracking-widest mb-2">TriPro</Text>
-              <Text className="text-neutral-400 text-sm font-medium">אימון מקצועי לטריאתלטים</Text>
+              <Text className="text-neutral-400 text-sm font-medium">{t('אימון מקצועי לטריאתלטים', 'Professional Triathlon Coaching')}</Text>
             </View>
 
             <View className="mb-8">
               <View className="mb-4">
-                <Text className="text-neutral-400 text-sm mb-2 text-right">דוא״ל</Text>
+                <Text className="text-neutral-400 text-sm mb-2 text-right">{t('דוא״ל', 'Email')}</Text>
                 <View className="flex-row items-center bg-neutral-800 rounded-xl px-4 h-14 border border-neutral-700">
                   <TextInput
-                    className="flex-1 text-white text-right text-base h-full"
-                    placeholder="הכנס דוא״ל"
+                    className={`flex-1 text-white text-base h-full ${language === 'en' ? 'text-left' : 'text-right'}`}
+                    placeholder={t('הכנס דוא״ל', 'Enter your email')}
                     placeholderTextColor="#6b7280"
                     value={email}
                     onChangeText={setEmail}
@@ -91,11 +109,11 @@ export default function Login() {
               </View>
 
               <View className="mb-2">
-                <Text className="text-neutral-400 text-sm mb-2 text-right">סיסמה</Text>
+                <Text className="text-neutral-400 text-sm mb-2 text-right">{t('סיסמה', 'Password')}</Text>
                 <View className="flex-row items-center bg-neutral-800 rounded-xl px-4 h-14 border border-neutral-700">
                   <TextInput
-                    className="flex-1 text-white text-right text-base h-full"
-                    placeholder="הכנס סיסמה"
+                    className={`flex-1 text-white text-base h-full ${language === 'en' ? 'text-left' : 'text-right'}`}
+                    placeholder={t('הכנס סיסמה', 'Enter your password')}
                     placeholderTextColor="#6b7280"
                     value={password}
                     onChangeText={setPassword}
@@ -106,7 +124,7 @@ export default function Login() {
               </View>
 
               <TouchableOpacity className="mt-2 py-2">
-                <Text className="text-neutral-500 text-sm text-right">שכחת סיסמה?</Text>
+                <Text className="text-neutral-500 text-sm text-right">{t('שכחת סיסמה?', 'Forgot password?')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -123,7 +141,7 @@ export default function Login() {
             >
               {!loading && <ChevronLeft color="#171717" size={24} className="mr-2" />}
               <Text className="text-neutral-900 font-bold text-lg">
-                {loading ? 'מתחבר...' : 'התחברות'}
+                {loading ? t('מתחבר...', 'Signing in...') : t('התחברות', 'Sign In')}
               </Text>
             </TouchableOpacity>
 
@@ -132,7 +150,7 @@ export default function Login() {
               onPress={() => router.push('/(auth)/role-selection')}
             >
               <Text className="text-neutral-400 text-sm">
-                משתמש חדש? <Text className="text-white font-bold">הירשם כאן</Text>
+                {t('משתמש חדש?', 'New user?')} <Text className="text-white font-bold">{t('הירשם כאן', 'Sign up here')}</Text>
               </Text>
             </TouchableOpacity>
             

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react-native';
 
 import { WorkoutCard, Workout } from '../../components/WorkoutCard';
+import { useLanguage } from '../../lib/LanguageContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Subgroup {
@@ -29,6 +30,7 @@ function SubgroupCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const router = useRouter();
+  const { t } = useLanguage();
   const hasWorkouts = workouts.length > 0;
 
   return (
@@ -59,7 +61,7 @@ function SubgroupCard({
               paddingHorizontal: 8, paddingVertical: 2,
             }}>
               <Text style={{ color: '#22c55e', fontSize: 11, fontWeight: '700' }}>
-                {workouts.length} אימונים
+                {workouts.length} {t('אימונים', 'Workouts')}
               </Text>
             </View>
           )}
@@ -85,7 +87,7 @@ function SubgroupCard({
           {workouts.slice(0, 10).map(w => <WorkoutCard key={w.id} workout={w} />)}
           {workouts.length > 10 && (
             <Text style={{ color: '#6b7280', fontSize: 12, textAlign: 'center', marginTop: 4 }}>
-              + {workouts.length - 10} אימונים נוספים
+              + {workouts.length - 10} {t('אימונים נוספים', 'more workouts')}
             </Text>
           )}
         </View>
@@ -95,7 +97,7 @@ function SubgroupCard({
       {!hasWorkouts && (
         <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
           <Text style={{ color: '#525252', fontSize: 13, textAlign: 'right', marginBottom: 12 }}>
-            0 אימונים נמצאו - צור תוכנית חדשה
+            {t('0 אימונים נמצאו - צור תוכנית חדשה', '0 workouts found - create a new plan')}
           </Text>
           <TouchableOpacity
             onPress={onGeneratePlan}
@@ -108,7 +110,7 @@ function SubgroupCard({
           >
             <Sparkles color="#22c55e" size={18} />
             <Text style={{ color: '#22c55e', fontWeight: '700', fontSize: 14 }}>
-              ייצר תוכנית עם AI ✨
+              {t('ייצר תוכנית עם AI ✨', 'Generate plan with AI ✨')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -126,6 +128,7 @@ export default function DashboardScreen() {
   const [subgroups, setSubgroups] = useState<Subgroup[]>([]);
   const [workoutsMap, setWorkoutsMap] = useState<Record<string, Workout[]>>({});
   const [totalWorkouts, setTotalWorkouts] = useState(0);
+  const { t } = useLanguage();
 
   // ── Fetch data ──────────────────────────────────────────────────────────
   const fetchData = useCallback(async () => {
@@ -214,7 +217,7 @@ export default function DashboardScreen() {
       <SafeAreaView className="flex-1 bg-[#09090b]">
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#22c55e" />
-          <Text style={{ color: '#6b7280', marginTop: 12, fontSize: 14 }}>טוען דשבורד...</Text>
+          <Text style={{ color: '#6b7280', marginTop: 12, fontSize: 14 }}>{t('טוען דשבורד...', 'Loading dashboard...')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -234,7 +237,7 @@ export default function DashboardScreen() {
         <View style={{ marginBottom: 28 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 10, marginBottom: 6 }}>
             <Text style={{ color: '#ffffff', fontSize: 26, fontWeight: '900' }}>
-              {userName ? `היי, ${userName} 👋` : 'הדשבורד שלך'}
+              {userName ? `${t('היי', 'Hi')}, ${userName} 👋` : t('הדשבורד שלך', 'Your Dashboard')}
             </Text>
             <View style={{
               width: 44, height: 44, borderRadius: 14,
@@ -245,7 +248,7 @@ export default function DashboardScreen() {
             </View>
           </View>
           <Text style={{ color: '#6b7280', fontSize: 14, textAlign: 'right' }}>
-            ניהול קבוצות ותוכניות אימון
+            {t('ניהול קבוצות ותוכניות אימון', 'Manage groups and workout plans')}
           </Text>
         </View>
 
@@ -258,21 +261,21 @@ export default function DashboardScreen() {
             borderRadius: 16, padding: 16, alignItems: 'center',
           }}>
             <Text style={{ color: '#22c55e', fontSize: 24, fontWeight: '900' }}>{subgroups.length}</Text>
-            <Text style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>קבוצות</Text>
+            <Text style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>{t('קבוצות', 'Groups')}</Text>
           </View>
           <View style={{
             flex: 1, backgroundColor: '#111111', borderWidth: 1, borderColor: '#262626',
             borderRadius: 16, padding: 16, alignItems: 'center',
           }}>
             <Text style={{ color: '#3b82f6', fontSize: 24, fontWeight: '900' }}>{totalWorkouts}</Text>
-            <Text style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>אימונים קרובים</Text>
+            <Text style={{ color: '#6b7280', fontSize: 12, marginTop: 2 }}>{t('אימונים קרובים', 'Upcoming Workouts')}</Text>
           </View>
         </View>
 
         {/* Subgroups Section */}
         <View style={{ marginBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8, marginBottom: 14 }}>
-            <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '800' }}>הקבוצות שלך</Text>
+            <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '800' }}>{t('הקבוצות שלך', 'Your Groups')}</Text>
             <Users color="#22c55e" size={20} />
           </View>
 
@@ -283,10 +286,10 @@ export default function DashboardScreen() {
             }}>
               <Users color="#525252" size={36} />
               <Text style={{ color: '#6b7280', fontSize: 15, fontWeight: '600', marginTop: 12, textAlign: 'center' }}>
-                עדיין לא נוצרו קבוצות
+                {t('עדיין לא נוצרו קבוצות', 'No groups created yet')}
               </Text>
               <Text style={{ color: '#525252', fontSize: 13, marginTop: 4, textAlign: 'center' }}>
-                צור קבוצות דרך תהליך ההרשמה כדי להתחיל
+                {t('צור קבוצות דרך תהליך ההרשמה כדי להתחיל', 'Create groups through the onboarding process to start')}
               </Text>
             </View>
           ) : (
