@@ -43,11 +43,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: 📦 Install dependencies
         run: npm ci
 
       - name: 🏗 Prebuild Native Files
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
         run: npx expo prebuild --platform android --non-interactive
 
       - name: 🏗 Setup Java
@@ -62,7 +65,7 @@ jobs:
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
         run: |
           cd android
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          ./gradlew assembleRelease --stacktrace
           cp app/build/outputs/apk/release/*.apk ../TriPro-Android-Release.apk
 
       - name: 📦 Upload APK Artifact
@@ -84,11 +87,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: 📦 Install dependencies
         run: npm ci
 
       - name: 🏗 Prebuild Native Files
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
         run: npx expo prebuild --platform ios --non-interactive
 
       - name: 📦 Restore Pods Cache
