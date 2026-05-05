@@ -73,7 +73,10 @@ jobs:
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
         run: |
           cd android
-          ./gradlew assembleRelease --stacktrace
+          ./gradlew clean
+          ./gradlew assembleRelease --stacktrace --no-daemon
+          echo "Built APK at: $(date)"
+          ls -lh app/build/outputs/apk/release/
           cp app/build/outputs/apk/release/*.apk ../TriPro-Android-Release.apk
 
       - name: 📦 Upload APK Artifact
