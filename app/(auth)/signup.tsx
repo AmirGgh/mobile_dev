@@ -42,22 +42,6 @@ export default function SignUp() {
 
     setLoading(true);
 
-    let groupToJoin: string | null = null;
-    if (!isCoach) {
-      const { data: inviteData, error: inviteError } = await supabase
-        .from('invite_codes')
-        .select('group_id')
-        .eq('code', inviteCode.trim())
-        .single();
-
-      if (inviteError || !inviteData) {
-        setLoading(false);
-        Alert.alert(t('שגיאה', 'Error'), t('קוד הצטרפות לא חוקי', 'Invalid invite code'));
-        return;
-      }
-      groupToJoin = inviteData.group_id;
-    }
-
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: email.trim(),
       password,
@@ -68,6 +52,7 @@ export default function SignUp() {
           group_name: isCoach
             ? (groupName.trim() || `${t('מועדון', 'Club')} ${fullName.trim()}`)
             : '',
+          invite_code: !isCoach ? inviteCode.trim() : undefined,
         },
       },
     });
@@ -101,12 +86,6 @@ export default function SignUp() {
       setLoading(false);
       Alert.alert(t('שגיאה', 'Error'), t('לא הצלחנו לקבל פרטי המשתמש. נסה שוב.', 'Could not retrieve user details. Please try again.'));
       return;
-    }
-
-    if (!isCoach && groupToJoin) {
-      await supabase
-        .from('group_members')
-        .insert({ athlete_id: user.id, group_id: groupToJoin });
     }
 
     setLoading(false);

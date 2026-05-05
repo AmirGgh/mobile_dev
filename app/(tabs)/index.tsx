@@ -141,19 +141,34 @@ export default function DashboardScreen() {
         .from('profiles').select('full_name').eq('id', user.id).maybeSingle();
       if (profile?.full_name) setUserName(profile.full_name);
 
-      // Coach's group → subgroups
-      const { data: groupRow } = await supabase
+      // Check if user is a coach first
+      const { data: coachGroup } = await supabase
         .from('groups').select('id').eq('head_coach_id', user.id).maybeSingle();
 
-      if (!groupRow) {
-        setLoading(false);
-        return;
+      let subgroupList: Subgroup[] = [];
+
+      if (coachGroup) {
+        // User is a coach, get all subgroups for their group
+        const { data: sgs } = await supabase
+          .from('subgroups').select('id, name').eq('group_id', coachGroup.id);
+        subgroupList = (sgs ?? []) as Subgroup[];
+      } else {
+        // User is likely an athlete, check group_members
+        const { data: membership } = await supabase
+          .from('group_members')
+          .select('subgroup_id, subgroups(name)')
+          .eq('athlete_id', user.id)
+          .eq('assignment_status', 'assigned')
+          .maybeSingle();
+
+        if (membership && membership.subgroup_id) {
+          subgroupList = [{ 
+            id: membership.subgroup_id, 
+            name: (membership as any).subgroups?.name ?? t('הקבוצה שלי', 'My Squad') 
+          }];
+        }
       }
 
-      const { data: sgs } = await supabase
-        .from('subgroups').select('id, name').eq('group_id', groupRow.id);
-
-      const subgroupList = (sgs ?? []) as Subgroup[];
       setSubgroups(subgroupList);
 
       if (subgroupList.length === 0) {
