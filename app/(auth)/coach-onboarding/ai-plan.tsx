@@ -264,13 +264,26 @@ Start your response with [ and end with ]`;
   // ── Parse AI JSON safely ─────────────────────────────────────────────────
   const parseWorkouts = (raw: string): AIWorkout[] | null => {
     try {
-      const clean = raw.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(clean);
+      // Extract everything between the first '[' and the last ']'
+      const startIdx = raw.indexOf('[');
+      const endIdx = raw.lastIndexOf(']');
+      
+      if (startIdx === -1 || endIdx === -1) {
+        console.log("[parseWorkouts] Could not find '[' or ']' in raw string");
+        return null;
+      }
+      
+      const jsonStr = raw.substring(startIdx, endIdx + 1);
+      const parsed = JSON.parse(jsonStr);
+      
       if (!Array.isArray(parsed) || parsed.length === 0) return null;
       const first = parsed[0];
       if (!first.title || !first.date || !first.type || !first.subgroup_name) return null;
       return parsed as AIWorkout[];
-    } catch { return null; }
+    } catch (err) { 
+      console.error("[parseWorkouts] JSON Parse Error:", err);
+      return null; 
+    }
   };
 
   // ── Generate ─────────────────────────────────────────────────────────────
@@ -282,17 +295,28 @@ Start your response with [ and end with ]`;
 
     try {
       const raw = await generateWorkoutPlan(buildPrompt(strict));
+      console.log("\n\n========== [AI RAW RESPONSE] ==========\n", raw, "\n=======================================\n\n");
+
+      // ── Check for backend rate limits / quota errors ────────────────
+      if (raw.includes('RESOURCE_EXHAUSTED') || raw.includes('Quota exceeded') || raw.includes('שגיאת מערכת AI')) {
+        Alert.alert('שגיאת שרת AI', 'חרגת ממכסת השימוש החינמית ב-AI (Rate Limit). אנא המתן כחצי דקה ונסה שוב, או בדוק את הגדרות התשלום שלך.');
+        setGenerating(false);
+        return;
+      }
 
       // ── Check for guardrail rejection ──────────────────────────────
       try {
-        const maybeError = JSON.parse(raw.replace(/```json|```/g, '').trim());
-        if (maybeError && !Array.isArray(maybeError) && maybeError.error) {
-          Alert.alert('נושא מחוץ לתחום', maybeError.error);
-          return;          // keep workouts empty → Save button stays hidden
+        const start = raw.indexOf('{');
+        const end = raw.lastIndexOf('}');
+        if (start !== -1 && end !== -1) {
+          const maybeError = JSON.parse(raw.substring(start, end + 1));
+          if (maybeError && maybeError.error) {
+            Alert.alert('נושא מחוץ לתחום', maybeError.error);
+            setGenerating(false);
+            return;
+          }
         }
-      } catch {
-        // Not a rejection object — continue to normal parsing below
-      }
+      } catch {}
 
       const parsed = parseWorkouts(raw);
       if (!parsed) {
